@@ -9,24 +9,13 @@ import time
 base_URI = 'http://34.171.180.221:8080/'
 # Make sure to replace 'http://your_vm_ip_address:port/' with your actual VM IP address and the port your FastAPI app is running on
 
-# Initialize the Picamera2 object outside of the loop
-picam2 = Picamera2()
-
-def capture_image():
-    filename = f'capture_{datetime.now().strftime("%Y%m%d_%H%M%S")}.jpg'
-    picam2.start_preview()  # Optional, depending on whether you need a preview.
-    time.sleep(2)  # Warm-up time for camera
-    picam2.capture_file(filename)
-    print(f"Image captured and saved as {filename}")
-    return filename
-
 def detect_and_draw_cars(filename):
     # 'uploaded_file' is the field expected on the FastAPI side
     with open(filename, 'rb') as f:
         files = {'uploaded_file': f}
 
         # Detect cars in the captured image
-        response = requests.post(base_URI + 'detect/', files=files)
+        response = requests.post(base_URI + 'detect/', files=files)  # Adjusted endpoint to match the FastAPI service
 
         # Make sure the request was successful
         if response.status_code != 200:
@@ -44,6 +33,8 @@ def detect_and_draw_cars(filename):
         drawing = ImageDraw.Draw(image)
 
         for car, details in cars_response.items():
+            # Assuming the bounding box is returned as a dictionary with 'box' key
+            # containing the coordinates in a [x1, y1, x2, y2] format
             bounding_box = details.get('box', [])
             if bounding_box:
                 drawing.rectangle(bounding_box, outline="red")
@@ -53,13 +44,17 @@ def detect_and_draw_cars(filename):
 
         print("Cars detected, boxes drawn, and saved to", save_filename)
 
-while True:
-    # Only capture a new image if no filename was provided as an argument
-    if len(sys.argv) < 2:
-        filename = capture_image()
+
+# Capture the image
+print("Capturing a new image...")
+picam2 = Picamera2()
+filename = f'capture_{datetime.now().strftime("%Y%m%d_%H%M%S")}.jpg'
+picam2.start_and_capture_file(filename)
+picam2.stop()
+print(f"Image captured and saved as {filename}")
     
-    detect_and_draw_cars(filename)
+detect_and_draw_cars(filename)
     
     # Sleep for 20 seconds before the next loop iteration
-    print("Waiting for 20 seconds...")
-    time.sleep(20)
+    #print("Waiting for 20 seconds...")
+    #time.sleep(20)
