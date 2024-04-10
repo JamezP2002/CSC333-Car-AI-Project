@@ -19,8 +19,10 @@ Python requirements (create a Python virtual environment):
 google-cloud-vision==3.4.2, fastapi, uvicorn, python-multipart
 '''
 
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, UploadFile
 from google.cloud import vision
+import os
+from datetime import datetime
 
 app = FastAPI()
 
@@ -28,10 +30,13 @@ app = FastAPI()
 async def detect_cars(uploaded_file: UploadFile):
     path = f"img/{uploaded_file.filename}"
     response = {}
+
+    if not os.path.exists('img/'):
+        os.makedirs('img/')
     
     content = None
     with open(path, "wb") as out_file:
-        content = uploaded_file.file.read()
+        content = await uploaded_file.read()
         out_file.write(content)
 
     client = vision.ImageAnnotatorClient()
@@ -42,9 +47,31 @@ async def detect_cars(uploaded_file: UploadFile):
     car_objects = [obj for obj in objects if obj.name.lower() in ['car', 'vehicle']]
     print(f"Number of cars found: {len(car_objects)}")
     response['cars'] = {}
-    for idx, car in enumerate(car_objects):
-        # Assuming you only want to include cars in the response
-        response['cars'][f"{car.name}_{idx}"] = f"{car.score:0.2f}" 
-        print(f"{car.name} (confidence: {car.score:0.2f})")
-        
+
+    with open("cars.txt", "a") as log_file:
+        for idx, car in enumerate(car_objects):
+            vertices = [(vertex.x, vertex.y) for vertex in car.bounding_poly.normalized_vertices]
+            if vertices:
+                x_min = min(vertex[0] for vertex in vertices)
+                y_min = min(vertex[1] for vertex in vertices)
+                x_max = max(vertex[0] for vertex in vertices)
+                y_max = max(vertex[1] for vertex in vertices)
+                bounding_box = [x_min, y_min, x_max, y_max]
+            else:
+                bounding_box = []
+            
+            car_info = {
+                "score": f"{car.score:0.2f}",
+                "box": bounding_box
+            }
+            response['cars'][f"car_{idx}"] = car_info
+            print(f"Car {idx} (confidence: {car.score:0.2f}, box: {bounding_box})")
+            
+            # Write the car index and the current date-time to the log file
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            log_file.write(f"Car_{idx}, Detected at: {now}\n")
+    
+    # Optionally, remove the saved file after processing
+    os.remove(path)
+    
     return response
