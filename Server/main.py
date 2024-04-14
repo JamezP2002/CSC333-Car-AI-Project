@@ -42,7 +42,7 @@ def get_non_duplicate_boxes(new_boxes, previous_boxes, threshold=0.01):
             non_duplicates.append(new_box)
     return non_duplicates
 
-@app.post('/detect/')
+@app.post('/detectCar/')
 async def detect_cars(uploaded_file: UploadFile):
     global previous_boxes
     new_boxes = []
@@ -100,7 +100,7 @@ async def detect_cars(uploaded_file: UploadFile):
         
         # Insert the detection into the MySQL database
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sql = "INSERT INTO carInfo (date) VALUES (%s)"
+        sql = "INSERT INTO carInfo (recorded_datetime) VALUES (%s)"
         values = (now,)
         cursor.execute(sql, values)
         db.commit()
