@@ -27,8 +27,14 @@ import mysql.connector
 
 app = FastAPI()
 
-@app.post('/detect/')
+# This will store the bounding boxes from the previous API call
+# For a more persistent solution, consider using a database or a file
+previous_boxes = set()
+
+@app.post('/detectCar/')
 async def detect_cars(uploaded_file: UploadFile):
+    global previous_boxes
+    new_boxes = set()
     path = f"img/{uploaded_file.filename}"
     response = {}
 
@@ -51,10 +57,10 @@ async def detect_cars(uploaded_file: UploadFile):
 
     # Connect to MySQL database
     db = mysql.connector.connect(
-        host="localhost",
-        user="your_mysql_user",  # Update with your MySQL user
-        password="your_mysql_password",  # Update with your MySQL password
-        database="your_database_name"  # Update with your database name
+        host="34.170.42.122",
+        user="james", 
+        password="james6780!!",  
+        database="james"
     )
     cursor = db.cursor()
 
@@ -65,10 +71,17 @@ async def detect_cars(uploaded_file: UploadFile):
             y_min = min(vertex[1] for vertex in vertices)
             x_max = max(vertex[0] for vertex in vertices)
             y_max = max(vertex[1] for vertex in vertices)
-            bounding_box = [x_min, y_min, x_max, y_max]
+            bounding_box = (x_min, y_min, x_max, y_max)
         else:
-            bounding_box = []
+            continue  # Skip this car if no vertices found
         
+        # Check if this bounding box is a duplicate
+        if bounding_box in previous_boxes:
+            print(f"Duplicate car detected, skipping: {bounding_box}")
+            continue  # Skip this car as it's a duplicate
+        
+        # Not a duplicate, add to new boxes and process it
+        new_boxes.add(bounding_box)
         car_info = {
             "score": f"{car.score:0.2f}",
             "box": bounding_box
@@ -79,9 +92,12 @@ async def detect_cars(uploaded_file: UploadFile):
         # Insert the car index and the current date-time into the MySQL database
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         sql = "INSERT INTO carInfo (date) VALUES (%s)"
-        values = (now)
+        values = (now,)
         cursor.execute(sql, values)
         db.commit()
+
+    # Update the previous boxes with the new ones for the next call
+    previous_boxes = new_boxes
 
     # Close MySQL connection
     cursor.close()
