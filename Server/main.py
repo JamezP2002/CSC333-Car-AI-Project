@@ -18,7 +18,6 @@ and enable the API
 Python requirements (create a Python virtual environment):
 google-cloud-vision==3.4.2, fastapi, uvicorn, python-multipart
 '''
-
 from fastapi import FastAPI, UploadFile
 from google.cloud import vision
 import os
@@ -28,13 +27,25 @@ import mysql.connector
 app = FastAPI()
 
 # This will store the bounding boxes from the previous API call
-# For a more persistent solution, consider using a database or a file
+# Consider using a more persistent solution for production
 previous_boxes = set()
 
-@app.post('/detectCar/')
+def is_similar_box(box1, box2, threshold=0.01):
+    """Check if two bounding boxes are similar within a given threshold."""
+    return all(abs(b1 - b2) < threshold for b1, b2 in zip(box1, box2))
+
+def get_non_duplicate_boxes(new_boxes, previous_boxes, threshold=0.01):
+    """Filter out new boxes that are similar to any of the previous boxes."""
+    non_duplicates = []
+    for new_box in new_boxes:
+        if not any(is_similar_box(new_box, prev_box, threshold) for prev_box in previous_boxes):
+            non_duplicates.append(new_box)
+    return non_duplicates
+
+@app.post('/detect/')
 async def detect_cars(uploaded_file: UploadFile):
     global previous_boxes
-    new_boxes = set()
+    new_boxes = []
     path = f"img/{uploaded_file.filename}"
     response = {}
 
@@ -55,6 +66,20 @@ async def detect_cars(uploaded_file: UploadFile):
     print(f"Number of cars found: {len(car_objects)}")
     response['cars'] = {}
 
+    # Preparing new bounding boxes
+    for idx, car in enumerate(car_objects):
+        vertices = [(vertex.x, vertex.y) for vertex in car.bounding_poly.normalized_vertices]
+        if vertices:
+            x_min = min(vertex[0] for vertex in vertices)
+            y_min = min(vertex[1] for vertex in vertices)
+            x_max = max(vertex[0] for vertex in vertices)
+            y_max = max(vertex[1] for vertex in vertices)
+            new_boxes.append((x_min, y_min, x_max, y_max))
+
+    # Filter out duplicates using similarity check
+    non_duplicate_boxes = get_non_duplicate_boxes(new_boxes, previous_boxes)
+    previous_boxes.update(non_duplicate_boxes)  # Update previous_boxes with non-duplicates
+
     # Connect to MySQL database
     db = mysql.connector.connect(
         host="34.170.42.122",
@@ -64,40 +89,21 @@ async def detect_cars(uploaded_file: UploadFile):
     )
     cursor = db.cursor()
 
-    for idx, car in enumerate(car_objects):
-        vertices = [(vertex.x, vertex.y) for vertex in car.bounding_poly.normalized_vertices]
-        if vertices:
-            x_min = min(vertex[0] for vertex in vertices)
-            y_min = min(vertex[1] for vertex in vertices)
-            x_max = max(vertex[0] for vertex in vertices)
-            y_max = max(vertex[1] for vertex in vertices)
-            bounding_box = (x_min, y_min, x_max, y_max)
-        else:
-            continue  # Skip this car if no vertices found
-        
-        # Check if this bounding box is a duplicate
-        if bounding_box in previous_boxes:
-            print(f"Duplicate car detected, skipping: {bounding_box}")
-            continue  # Skip this car as it's a duplicate
-        
-        # Not a duplicate, add to new boxes and process it
-        new_boxes.add(bounding_box)
+    # Processing non-duplicate boxes
+    for idx, box in enumerate(non_duplicate_boxes):
         car_info = {
-            "score": f"{car.score:0.2f}",
-            "box": bounding_box
+            "score": "Detected",  # Example value, adjust as necessary
+            "box": box
         }
         response['cars'][f"car_{idx}"] = car_info
-        print(f"Car {idx} (confidence: {car.score:0.2f}, box: {bounding_box})")
+        print(f"Car {idx} (box: {box})")
         
-        # Insert the car index and the current date-time into the MySQL database
+        # Insert the detection into the MySQL database
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         sql = "INSERT INTO carInfo (date) VALUES (%s)"
         values = (now,)
         cursor.execute(sql, values)
         db.commit()
-
-    # Update the previous boxes with the new ones for the next call
-    previous_boxes = new_boxes
 
     # Close MySQL connection
     cursor.close()
@@ -107,4 +113,5 @@ async def detect_cars(uploaded_file: UploadFile):
     os.remove(path)
     
     return response
+
 
