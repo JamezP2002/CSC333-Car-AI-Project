@@ -66,7 +66,5 @@ def main():
         fig = px.line(aggregated_data, x='recorded_datetime', y='counts', title='Aggregated Car Records')
         st.plotly_chart(fig)
 
-# Make sure to define connect_to_db(), aggregate_data(), and other necessary functions here
-
 if __name__ == "__main__":
     main()
