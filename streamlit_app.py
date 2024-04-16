@@ -56,7 +56,7 @@ def main():
                          (df['recorded_datetime'] <= pd.to_datetime(end_date))]
 
         # Optionally, let users choose the aggregation frequency
-        freq_selection = st.selectbox('Select frequency for analysis', options=['H', 'D', 'W', 'M', 'Y'], index=1)
+        freq_selection = st.selectbox('Select frequency for analysis', options=['h', 'd', 'w', 'm', 'y'], index=1)
         
         # Data aggregation
         aggregated_data = aggregate_data(filtered_df, freq=freq_selection)
