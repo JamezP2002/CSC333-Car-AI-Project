@@ -30,7 +30,7 @@ def detect_and_draw_cars(filename):
                 drawing.rectangle(bounding_box, outline="red")
         save_filename = f"cars_detected_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
         image.save(save_filename)
-        print("Cars detected, boxes drawn, and saved to", save_filename)
+        print("Cars detected and saved to", save_filename)
 
 def capture_image(picam2):
     print("Capturing a new image...")
