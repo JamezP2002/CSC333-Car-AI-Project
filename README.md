@@ -28,12 +28,6 @@ pip install -r requirements.txt
 ```
 
 ## Usage
-To start the server, run:
-
-```bash
-python main.py
-```
-
 To launch the Streamlit application, execute:
 
 ```bash
