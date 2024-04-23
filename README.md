@@ -12,13 +12,13 @@ This project is developed as part of the DSC 333 course, focusing on collecting 
 To get started with the project, clone this repository to your local machine:
 
 ```bash
-git clone <repository-url>
+git clone 333FinalPetkin
 ```
 
 Navigate to the project directory:
 
 ```bash
-cd <project-name>
+cd 333FinalPetkin
 ```
 
 Install the required dependencies:
@@ -37,7 +37,7 @@ python main.py
 To launch the Streamlit application, execute:
 
 ```bash
-streamlit run streamlit_app.py
+streamlit run streamlitApp.py
 ```
 
 ## Contribution
