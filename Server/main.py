@@ -1,4 +1,25 @@
-'''
+"""
+This FastAPI server application serves as a backend service for detecting cars in images. 
+It accepts images uploaded through a POST request, utilizes the Google Cloud Vision API for object detection,
+ and filters out similar bounding boxes to avoid duplicates. Detected cars' bounding boxes are stored 
+ temporarily and can be filtered out if they are similar to previously detected cars, using a customizable 
+ similarity threshold.
+
+Key features include:
+- Image upload handling through a FastAPI endpoint.
+- Object detection using Google Cloud Vision API, specifically identifying cars or vehicles in the images.
+- Similarity checking to filter out duplicate detections based on customizable bounding box similarity.
+- Persistence of detected car information in a MySQL database, including a timestamp in Eastern Time Zone.
+- Temporary storage management by saving uploaded files to disk and removing them after processing.
+
+The application demonstrates integration with external APIs and databases, showcasing a practical 
+implementation of a server-side car detection system. It is advised to consider a more persistent 
+and robust solution for storing previous detection records in a production environment.
+
+Before running this application, ensure that the Google Cloud Vision API is accessible and the MySQL 
+database credentials are correctly configured. Additionally, the 'img/' directory is used for temporary 
+storage of uploaded images and will be created if it does not exist.
+
 Google sample test code for vision API:
 https://github.com/GoogleCloudPlatform/python-docs-samples/blob/main/vision/snippets/detect/detect.py
 
@@ -7,8 +28,9 @@ Before running, go to the Google Vision API menu in the GCP console
 and enable the API
 
 Python requirements (create a Python virtual environment):
-google-cloud-vision==3.4.2, fastapi, uvicorn, python-multipart mysql.connector pytz
-'''
+install requirements.txt
+
+"""
 from fastapi import FastAPI, UploadFile
 from google.cloud import vision
 import os

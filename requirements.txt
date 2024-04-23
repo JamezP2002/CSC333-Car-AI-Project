@@ -1,0 +1,13 @@
+mysql.connector
+pytz
+streamlit
+requests
+pandas
+numpy
+fastapi
+uvicorn
+python-multipart
+google-cloud-vision
+picamera2
+PIL
+plotly

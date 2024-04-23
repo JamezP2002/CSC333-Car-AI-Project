@@ -1,3 +1,31 @@
+"""
+This is the client main.py file this python script was designed to capture images using PiCamera2, 
+detect cars in the captured images, and draw bounding boxes around detected cars. 
+It interfaces with a FastAPI server that processes the image and returns the detection results. 
+The script continuously captures images at a defined interval, submits them to the FastAPI 
+server for car detection, and saves the annotated images (Does not save them with drawn boxes for some reason).
+
+Key functionalities include:
+- Capturing images at regular intervals.
+- Sending the captured images to a FastAPI server for car detection.
+- Receiving car detection data, including bounding boxes, from the server.
+- Annotating the captured images with bounding boxes around detected cars.
+- Saving the annotated images with a timestamp in their filenames.
+
+The script also handles termination requests, ensuring that the PiCamera2 is 
+properly stopped before exiting.
+
+To use this script, ensure that the FastAPI server's external IP address and port are correctly specified in the 
+`base_URI` variable. The FastAPI server should provide an endpoint for car detection (`/detectCar/`) that accepts 
+image files and returns detection data.
+
+Note: This script requires the PiCamera2 library for capturing images and PIL (Python Imaging Library) 
+for image processing and drawing.
+
+Python requirements:
+install needed libraries ( located in requirements.txt)
+"""
+
 import requests
 from PIL import Image, ImageDraw
 from picamera2 import Picamera2
