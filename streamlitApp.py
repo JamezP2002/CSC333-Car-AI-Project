@@ -1,3 +1,37 @@
+"""
+This Streamlit application is designed for visualizing the analysis of car records over time. 
+It connects to a MySQL database to retrieve car information, including timestamps of recorded data, 
+and allows users to filter records within a specified date range. The application provides interactive
+ elements for selecting start and end dates, and for choosing the frequency of data aggregation.
+
+Key functionalities include:
+- Interactive date range selection for filtering car records.
+- Connection to a MySQL database to fetch car records.
+- Aggregation of car data into specified time intervals (e.g., hourly, daily, weekly, monthly, yearly).
+- Visualization of aggregated data using Plotly for a dynamic and interactive experience.
+
+Upon selection of the date range and aggregation frequency by the user, the application fetches and 
+processes the relevant car records from the database, aggregates the data based on the specified frequency,
+ and visualizes the trends over time through a line chart.
+
+Usage:
+1. The user selects a start and end date for the analysis period.
+2. The user selects the desired frequency for data aggregation (e.g., daily, weekly).
+3. The application fetches and filters car records from the MySQL database based on the specified date range.
+4. Aggregated data is visualized in a Plotly line chart, showing the count of car records over the selected period.
+
+This application demonstrates the integration of Streamlit with data processing libraries like Pandas and Plotly, 
+along with database operations using MySQL Connector. It provides a simple yet powerful tool for analyzing and 
+visualizing time-series data from car records.
+
+Note: Ensure the MySQL database is accessible and the credentials in the `connect_to_db` function are 
+correctly set before running the application.
+
+Python requirements:
+install requirements.txt
+"""
+
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
