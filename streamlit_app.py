@@ -4,7 +4,7 @@ import plotly.express as px
 from datetime import datetime
 import mysql.connector
 
-# Function to connect to the database
+# Connect to the database
 def connect_to_db():
     return mysql.connector.connect(
         host="34.170.42.122",
@@ -13,8 +13,8 @@ def connect_to_db():
         database="james"
     )
 
-# Assuming get_car_info() fetches all records without filtering by date
-def get_car_info():
+# get_car_info() fetches all records without filtering by date
+def getCarInfo():
     db = connect_to_db()
     cursor = db.cursor(dictionary=True)
     query = """
@@ -45,7 +45,7 @@ def main():
         st.error('Error: End date must be after start date.')
     else:
         # Data retrieval
-        car_info = get_car_info()
+        car_info = getCarInfo()
         df = pd.DataFrame(car_info)
         
         # Convert 'recorded_datetime' to datetime
@@ -65,6 +65,30 @@ def main():
         # Visualization
         fig = px.line(aggregated_data, x='recorded_datetime', y='counts', title='Aggregated Car Records')
         st.plotly_chart(fig)
+
+        # Aggregating and calculating averages
+        # Start_date and end_date are correctly defined
+        filtered_df = df[(df['recorded_datetime'] >= pd.to_datetime(start_date)) & 
+                        (df['recorded_datetime'] <= pd.to_datetime(end_date))]
+
+        # Debug: Check if 'recorded_datetime' column exists
+        if 'recorded_datetime' not in filtered_df.columns:
+            st.error("Missing 'recorded_datetime' column. Please check data preparation steps.")
+            return  # Exit the function early
+        
+        # Daily Average
+        daily_avg = filtered_df.resample('D', on='recorded_datetime').size().mean()
+        st.write(f"Daily Average: {daily_avg:.2f} cars")
+        
+        # Hourly Average - This makes sense only within days, hence first group by date, then by hour
+        hourly_avg = filtered_df.groupby(filtered_df['recorded_datetime'].dt.date).resample('H', on='recorded_datetime').size().groupby(level=0).mean().mean()
+        st.write(f"Hourly Average: {hourly_avg:.2f} cars")
+        
+        # Weekly Average
+        weekly_avg = filtered_df.resample('W', on='recorded_datetime').size().mean()
+        st.write(f"Weekly Average: {weekly_avg:.2f} cars")
+
+
 
 if __name__ == "__main__":
     main()
