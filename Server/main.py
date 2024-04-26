@@ -98,18 +98,19 @@ async def detect_cars(uploaded_file: UploadFile):
     previous_boxes.update(non_duplicate_boxes)  # Update previous_boxes with non-duplicates
 
     # Connect to MySQL database
+    #( Fill in with your infomation )
     db = mysql.connector.connect(
-        host="34.170.42.122",
-        user="james", 
-        password="james6780!!",  
-        database="james"
+        host="",
+        user="", 
+        password="",  
+        database=""
     )
     cursor = db.cursor()
 
     # Processing non-duplicate boxes
     for idx, box in enumerate(non_duplicate_boxes):
         car_info = {
-            "score": "Detected",  # Example value, adjust as necessary
+            "score": "Detected",  
             "box": box
         }
         response['cars'][f"car_{idx}"] = car_info
