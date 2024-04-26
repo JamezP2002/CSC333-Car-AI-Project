@@ -41,10 +41,10 @@ import mysql.connector
 # Connect to the database
 def connect_to_db():
     return mysql.connector.connect(
-        host="34.170.42.122",
-        user="james",
-        password="james6780!!",
-        database="james"
+        host="",
+        user="",
+        password="",
+        database=""
     )
 
 # get_car_info() fetches all records without filtering by date
